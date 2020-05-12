@@ -138,66 +138,71 @@ x_train, y_train, x_test, y_test = generate_data(white_wine, 0.7)
 
 # %matplotlib inline
 import matplotlib.pyplot as plt
-from sklearn import tree
-from sklearn.metrics import accuracy_score
 
 # white wine
-model = Sequential()
-model.add(Dense(32, input_dim = 11, activation='relu'))
-model.add(Dense(units=11, activation='softmax'))
+whitemodel = Sequential()
+whitemodel.add(Dense(32, input_dim = 11, activation='relu'))
+whitemodel.add(Dense(units=11, activation='softmax'))
 
-model.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+whitemodel.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
 
 
 ###########################################################
 
-hist = model.fit(x_train, y_train, epochs=100, batch_size=10)
+hist = whitemodel.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=100, batch_size=10)
 
-y_loss = hist.history['loss']
-
-x_len = np.arange(len(y_loss))
-plt.title('White Wine train loss')
-plt.plot(x_len, y_loss, 'b-', label="Train-set Loss")
+train_loss = hist.history['loss']
+test_loss = hist.history['val_loss']
+plt.title('White Wine loss')
+plt.plot(train_loss, 'b', label='train loss')
+plt.plot(test_loss, 'r', label='test loss')
 plt.legend(loc='best')
 plt.grid()
 plt.xlabel('epoch')
 plt.ylabel('loss')
+
 plt.show()
 
-y_acc = hist.history['accuracy']
-plt.plot(x_len, y_acc, 'r-', label="Train-set Accuracy")
-plt.legend(loc='upper right')
+train_acc = hist.history['accuracy']
+test_acc = hist.history['val_accuracy']
+
+plt.title('White Wine Acc')
+plt.plot(train_acc, 'g', label='train acc')
+plt.plot(test_acc, 'b', label='test acc')
+plt.legend(loc='best')
 plt.grid()
 plt.xlabel('epoch')
-plt.ylabel('accuracy')
+plt.ylabel('acc')
+
 plt.show()
 
-test_loss, test_acc = model.evaluate(x_test, y_test, verbose=2)
+test_loss, test_acc = whitemodel.evaluate(x_test, y_test,verbose = 0)
 print(test_acc)
 
 #red wine
 x_train, y_train, x_test, y_test = generate_data(red_wine, 0.7)
 
-model = Sequential()
-model.add(Dense(32, input_dim = 11, activation='relu'))
-model.add(Dense(units=11, activation='softmax'))
+redmodel = Sequential()
+redmodel.add(Dense(32, input_dim = 11, activation='relu'))
+redmodel.add(Dense(units=11, activation='softmax'))
 
-model.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+redmodel.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
 
-hist = model.fit(x_train, y_train, epochs=100, batch_size=10)
+hist = redmodel.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=100, batch_size=10)
 
-y_loss = hist.history['loss']
-
-x_len = np.arange(len(y_loss))
-plt.title('Red Wine train loss')
-plt.plot(x_len, y_loss, 'b-', label="Train-set Loss")
+train_loss = hist.history['loss']
+test_loss = hist.history['val_loss']
+plt.title('Red Wine loss')
+plt.plot(train_loss, 'b', label='train loss')
+plt.plot(test_loss, 'r', label='test loss')
 plt.legend(loc='best')
 plt.grid()
 plt.xlabel('epoch')
 plt.ylabel('loss')
+
 plt.show()
 
-test_loss, test_acc = model.evaluate(x_test, y_test, verbose=2)
+test_loss, test_acc = redmodel.evaluate(x_test, y_test, verbose=0)
 print(test_acc)
 
 """### 2. 각 모델의 성능을 향상시킬 수 있는 방법 적용
@@ -208,31 +213,73 @@ print(test_acc)
     * 예) Dropout, Normalization 등
 """
 
+# Commented out IPython magic to ensure Python compatibility.
 ##########################################################
+from keras import optimizers
 
-# Learning rate 0.7 --> 0.75
 # white wine
-x_train, y_train, x_test, y_test = generate_data(white_wine, 0.75)
+x_train, y_train, x_test, y_test = generate_data(white_wine, 0.7)
+##########################################################
+#Before improvement
+# %matplotlib inline
+import matplotlib.pyplot as plt
 
-model = Sequential()
-model.add(Dense(32, input_dim = 11, activation='relu'))
-model.add(Dense(units=11, activation='softmax'))
+# white wine
+whitemodel = Sequential()
+whitemodel.add(Dense(32, input_dim = 11, activation='relu'))
+whitemodel.add(Dense(units=11, activation='softmax'))
 
-model.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+whitemodel.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
 
-hist = model.fit(x_train, y_train, epochs=100, batch_size=10)
+hist = whitemodel.fit(x_train, y_train,validation_data=(x_test, y_test), epochs=100, batch_size=10)
 
-x_len = np.arange(len(y_loss))
-plt.title('White Wine train loss')
-plt.plot(x_len, y_loss, 'b-', label="Train-set Loss")
+train_loss = hist.history['loss']
+test_loss = hist.history['val_loss']
+plt.title('White Wine loss')
+plt.plot(train_loss, 'b', label='train loss')
+plt.plot(test_loss, 'r', label='test loss')
 plt.legend(loc='best')
 plt.grid()
 plt.xlabel('epoch')
 plt.ylabel('loss')
+
 plt.show()
 
-test_loss, test_acc = model.evaluate(x_test, y_test, verbose=2)
-print(test_acc)
+
+result = model.evaluate(x_test, y_test, verbose=0)
+print("Before Improvement : test_Accuracy = "+str(result[1]))
+print("")
+###########################################################
+
+from keras.callbacks import EarlyStopping
+from keras.layers import  Dropout
+
+model = Sequential()
+model.add(Dense(32, input_dim = 11, activation='relu'))
+model.add(Dense(32, activation = 'relu')) 
+model.add(Dense(units=11, activation='softmax'))
+model.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+
+es = EarlyStopping(monitor='val_loss')
+
+hist = model.fit(x_train, y_train,validation_data=(x_test, y_test), epochs=100, batch_size=128, verbose=2, validation_split=0.2)
+
+train_loss = hist.history['loss']
+test_loss = hist.history['val_loss']
+plt.title('Improve White Wine loss')
+plt.plot(train_loss, 'b', label='train loss')
+plt.plot(test_loss, 'r', label='test loss')
+plt.legend(loc='best')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('loss')
+
+plt.show()
+
+
+result = model.evaluate(x_test, y_test, verbose=0)
+print("After Improvement : test_Accuracy = "+str(result[1]))
+print("")
 ###########################################################
 
 """### 3. 화이트 와인과 레드 와인을 하나의 모델만 사용하여 분류
@@ -249,11 +296,8 @@ rw = pd.DataFrame(red_wine)
 wine = pd.concat([rw,ww], ignore_index = True)
 display(wine)
 
-y_loss = hist.history['loss']
-
 ###########################################################
 
-# 데이터프레임을 입력 변수와 정답 셋(클래스 레이블)으로 나누는 함수
 x_train, y_train, x_test, y_test = generate_data(wine,0.7)
 
 # wine
@@ -263,18 +307,19 @@ model.add(Dense(units=11, activation='softmax'))
 
 model.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
 
-hist = model.fit(x_train, y_train, epochs=100, batch_size=10)
+hist = model.fit(x_train, y_train, validation_data = (x_test, y_test), epochs=100, batch_size=10)
 
-y_loss = hist.history['loss']
-
-x_len = np.arange(len(y_loss))
-plt.title('Wine train loss')
-plt.plot(x_len, y_loss, 'b-', label="Train-set Loss")
+train_loss = hist.history['loss']
+test_loss = hist.history['val_loss']
+plt.title('Wine loss')
+plt.plot(train_loss, 'b', label='train loss')
+plt.plot(test_loss, 'r', label='test loss')
 plt.legend(loc='best')
 plt.grid()
 plt.xlabel('epoch')
 plt.ylabel('loss')
+
 plt.show()
 
-test_loss, test_acc = model.evaluate(x_test, y_test, verbose=2)
+test_loss, test_acc = model.evaluate(x_test, y_test, verbose=0)
 print(test_acc)
