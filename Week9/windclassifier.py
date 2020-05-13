@@ -256,7 +256,9 @@ from keras.layers import  Dropout
 
 model = Sequential()
 model.add(Dense(32, input_dim = 11, activation='relu'))
+model.add(Dropout(0.1))
 model.add(Dense(32, activation = 'relu')) 
+model.add(Dropout(0.1))
 model.add(Dense(units=11, activation='softmax'))
 model.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
 
