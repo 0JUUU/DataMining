@@ -251,14 +251,18 @@ print("Before Improvement : test_Accuracy = "+str(result[1]))
 print("")
 ###########################################################
 
-#improvement
+#white wine improvement
 from keras.callbacks import EarlyStopping
+from keras.callbacks import ModelCheckpoint
 from keras.optimizers import Adam
 from keras.layers import  Dropout
 from keras.layers import Activation
 from keras.layers.normalization import BatchNormalization
 
 model = Sequential()
+# Hidden layer 하나 추가, node : 32 -> 64
+# Batch Normalization
+
 model.add(Dense(64, input_dim = 11))
 model.add(BatchNormalization())
 model.add(Activation('relu'))
@@ -267,11 +271,15 @@ model.add(BatchNormalization())
 model.add(Activation('relu'))
 model.add(Dense(units=11, activation='softmax'))
 
-opt = optimizers.Adam(learning_rate=0.002)
+# optimizer 변경, learning_rate 변경
+opt = optimizers.Adamax(learning_rate=0.001)
 model.compile(loss = 'sparse_categorical_crossentropy', optimizer = opt, metrics = ['accuracy'])
 
-ES = EarlyStopping(monitor='val_loss', patience=25)
-hist = model.fit(x_train, y_train, validation_data = [x_test, y_test], epochs=50, batch_size=256, verbose=2)
+# earlyStopping, modelCheckpoint 설정
+# batch_size 변경
+es = EarlyStopping(monitor= 'val_loss', patience = 40, verbose = 1, mode = 'min')
+mc = ModelCheckpoint('best_model.h5', monitor='val_loss', mode='min', save_best_only=True)
+hist = model.fit(x_train, y_train, validation_data = (x_test, y_test), epochs=100, batch_size=128, verbose=2, callbacks = [es, mc])
 
 train_loss = hist.history['loss']
 test_loss = hist.history['val_loss']
@@ -287,7 +295,80 @@ plt.show()
 
 
 result = model.evaluate(x_test, y_test, verbose=2)
-print("After Improvement : test_Accuracy = "+str(result[1]))
+print("After Improvement : test_accuracy = "+str(result[1]))
+print("")
+###########################################################
+
+# red wine
+x_train, y_train, x_test, y_test = generate_data(red_wine, 0.7)
+##########################################################
+#Before improvement
+# red wine
+redmodel = Sequential()
+redmodel.add(Dense(32, input_dim = 11, activation='relu'))
+redmodel.add(Dense(units=11, activation='softmax'))
+
+redmodel.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+
+hist = redmodel.fit(x_train, y_train,validation_data = [x_test, y_test], epochs=100, batch_size=10)
+
+train_loss = hist.history['loss']
+test_loss = hist.history['val_loss']
+plt.title('Red Wine loss')
+plt.plot(train_loss, 'b', label='train loss')
+plt.plot(test_loss, 'r', label='test loss')
+plt.legend(loc='best')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('loss')
+
+plt.show()
+
+
+result = whitemodel.evaluate(x_test, y_test, verbose=2)
+print("Before Improvement : test_Accuracy = "+str(result[1]))
+print("")
+###########################################################
+
+#red wine improvement
+from keras.callbacks import EarlyStopping
+from keras.callbacks import ModelCheckpoint
+from keras.optimizers import Adam
+from keras.layers import  Dropout
+from keras.layers import Activation
+from keras.layers.normalization import BatchNormalization
+
+model = Sequential()
+model.add(Dense(64, input_dim = 11))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(Dense(64))
+model.add(BatchNormalization()) 
+model.add(Activation('relu'))
+model.add(Dense(units=11, activation='softmax'))
+
+opt = optimizers.Adamax(learning_rate=0.001)
+model.compile(loss = 'sparse_categorical_crossentropy', optimizer = opt, metrics = ['accuracy'])
+
+es = EarlyStopping(monitor= 'val_loss', patience = 40, verbose = 1, mode = 'min')
+mc = ModelCheckpoint('best_model.h5', monitor='val_loss', mode='min', save_best_only=True)
+hist = model.fit(x_train, y_train, validation_data = (x_test, y_test), epochs=100, batch_size=128, verbose=2, callbacks = [es, mc])
+
+train_loss = hist.history['loss']
+test_loss = hist.history['val_loss']
+plt.title('Improve Red Wine loss')
+plt.plot(train_loss, 'b', label='train loss')
+plt.plot(test_loss, 'r', label='test loss')
+plt.legend(loc='best')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('loss')
+
+plt.show()
+
+
+result = model.evaluate(x_test, y_test, verbose=2)
+print("After Improvement : test_accuracy = "+str(result[1]))
 print("")
 ###########################################################
 
@@ -331,4 +412,49 @@ plt.ylabel('loss')
 plt.show()
 
 test_loss, test_acc = model.evaluate(x_test, y_test, verbose=0)
-print(test_acc)
+print("Before Improvement, total wine: test_accuracy = "+str(test_acc))
+
+#wine improvement
+from keras.callbacks import EarlyStopping
+from keras.callbacks import ModelCheckpoint
+from keras.optimizers import Adam
+from keras.layers import  Dropout
+from keras.layers import Activation
+from keras.layers.normalization import BatchNormalization
+
+model = Sequential()
+model.add(Dense(64, input_dim = 11))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(Dense(64))
+model.add(BatchNormalization()) 
+model.add(Activation('relu'))
+model.add(Dense(64))
+model.add(BatchNormalization()) 
+model.add(Activation('relu'))
+model.add(Dense(units=11, activation='softmax'))
+
+opt = optimizers.Adamax(learning_rate=0.001)
+model.compile(loss = 'sparse_categorical_crossentropy', optimizer = opt, metrics = ['accuracy'])
+
+es = EarlyStopping(monitor= 'val_accuracy', patience = 20, verbose = 1, mode = 'max')
+mc = ModelCheckpoint(filepath='bestgraph.hdf5', monitor='val_accuracy', mode='max', save_best_only=True)
+hist = model.fit(x_train, y_train, validation_data = (x_test, y_test), epochs=100, batch_size=128, verbose=2, callbacks = [es, mc])
+
+train_loss = hist.history['loss']
+test_loss = hist.history['val_loss']
+plt.title('Improve Wine loss')
+plt.plot(train_loss, 'b', label='train loss')
+plt.plot(test_loss, 'r', label='test loss')
+plt.legend(loc='best')
+plt.grid()
+plt.xlabel('epoch')
+plt.ylabel('loss')
+
+plt.show()
+
+
+result = model.evaluate(x_test, y_test, verbose=2)
+print("After Improvement : test_accuracy = "+str(result[1]))
+print("")
+###########################################################
