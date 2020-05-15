@@ -149,7 +149,7 @@ whitemodel.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam',
 
 ###########################################################
 
-hist = whitemodel.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=100, batch_size=10)
+hist = whitemodel.fit(x_train, y_train, validation_data=[x_test, y_test], epochs=100, batch_size=10)
 
 train_loss = hist.history['loss']
 test_loss = hist.history['val_loss']
@@ -176,7 +176,7 @@ plt.ylabel('acc')
 
 plt.show()
 
-test_loss, test_acc = whitemodel.evaluate(x_test, y_test,verbose = 0)
+test_loss, test_acc = whitemodel.evaluate(x_test, y_test,verbose = 2)
 print(test_acc)
 
 #red wine
@@ -188,7 +188,7 @@ redmodel.add(Dense(units=11, activation='softmax'))
 
 redmodel.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
 
-hist = redmodel.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=100, batch_size=10)
+hist = redmodel.fit(x_train, y_train, validation_data=[x_test, y_test], epochs=100, batch_size=10)
 
 train_loss = hist.history['loss']
 test_loss = hist.history['val_loss']
@@ -202,7 +202,7 @@ plt.ylabel('loss')
 
 plt.show()
 
-test_loss, test_acc = redmodel.evaluate(x_test, y_test, verbose=0)
+test_loss, test_acc = redmodel.evaluate(x_test, y_test, verbose=2)
 print(test_acc)
 
 """### 2. 각 모델의 성능을 향상시킬 수 있는 방법 적용
@@ -231,7 +231,7 @@ whitemodel.add(Dense(units=11, activation='softmax'))
 
 whitemodel.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
 
-hist = whitemodel.fit(x_train, y_train,validation_data=(x_test, y_test), epochs=100, batch_size=10)
+hist = whitemodel.fit(x_train, y_train,validation_data = [x_test, y_test], epochs=100, batch_size=10)
 
 train_loss = hist.history['loss']
 test_loss = hist.history['val_loss']
@@ -246,25 +246,32 @@ plt.ylabel('loss')
 plt.show()
 
 
-result = model.evaluate(x_test, y_test, verbose=0)
+result = whitemodel.evaluate(x_test, y_test, verbose=2)
 print("Before Improvement : test_Accuracy = "+str(result[1]))
 print("")
 ###########################################################
 
+#improvement
 from keras.callbacks import EarlyStopping
+from keras.optimizers import Adam
 from keras.layers import  Dropout
+from keras.layers import Activation
+from keras.layers.normalization import BatchNormalization
 
 model = Sequential()
-model.add(Dense(32, input_dim = 11, activation='relu'))
-model.add(Dropout(0.1))
-model.add(Dense(32, activation = 'relu')) 
-model.add(Dropout(0.1))
+model.add(Dense(64, input_dim = 11))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(Dense(64))
+model.add(BatchNormalization()) 
+model.add(Activation('relu'))
 model.add(Dense(units=11, activation='softmax'))
-model.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
 
-es = EarlyStopping(monitor='val_loss')
+opt = optimizers.Adam(learning_rate=0.002)
+model.compile(loss = 'sparse_categorical_crossentropy', optimizer = opt, metrics = ['accuracy'])
 
-hist = model.fit(x_train, y_train,validation_data=(x_test, y_test), epochs=100, batch_size=128, verbose=2, validation_split=0.2)
+ES = EarlyStopping(monitor='val_loss', patience=25)
+hist = model.fit(x_train, y_train, validation_data = [x_test, y_test], epochs=50, batch_size=256, verbose=2)
 
 train_loss = hist.history['loss']
 test_loss = hist.history['val_loss']
@@ -279,7 +286,7 @@ plt.ylabel('loss')
 plt.show()
 
 
-result = model.evaluate(x_test, y_test, verbose=0)
+result = model.evaluate(x_test, y_test, verbose=2)
 print("After Improvement : test_Accuracy = "+str(result[1]))
 print("")
 ###########################################################
